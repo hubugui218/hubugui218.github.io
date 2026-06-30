@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>丹丹宝宝专属推送</title>
+<style>
+/* ===== Hello Kitty 主题 ===== */
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: "Comic Neue", "Microsoft YaHei", "PingFang SC", cursive, sans-serif;
+    background:
+        radial-gradient(circle at 15% 10%, #ffd1dc 0%, transparent 35%),
+        radial-gradient(circle at 85% 5%, #ffe0ec 0%, transparent 30%),
+        radial-gradient(circle at 50% 90%, #ffc0cb 0%, transparent 40%),
+        linear-gradient(180deg, #ffe4e9 0%, #ffd6e0 30%, #ffc8d6 60%, #ffb6c7 100%);
+    min-height: 100vh; min-height: 100dvh;
+    display: flex; justify-content: center;
+    padding: 12px 8px; color: #6b3a5b;
+    position: relative; font-size: 14px;
+}
+body::before {
+    content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-image: radial-gradient(circle, #fff 1.5px, transparent 1.5px), radial-gradient(circle, #ffd1dc 2px, transparent 2px);
+    background-size: 40px 40px, 70px 70px; background-position: 0 0, 20px 20px;
+    opacity: 0.3; pointer-events: none; z-index: 0;
+}
+.container { max-width: 420px; width: 100%; position: relative; z-index: 1; }
+
+/* ── 加载动画 ── */
+.loading { text-align: center; padding: 60px 20px; font-size: 18px; color: #d6336c; font-weight: 700; }
+.loading .spinner {
+    display: inline-block; width: 40px; height: 40px;
+    border: 4px solid #ffd1dc; border-top-color: #ff6b8a; border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin-bottom: 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── 飘浮爱心 ── */
+.hearts { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.hearts span { position: absolute; font-size: 16px; animation: floatUp 8s infinite; opacity: 0.3; }
+.hearts span:nth-child(1) { left: 5%; animation-delay: 0s; }
+.hearts span:nth-child(2) { left: 15%; animation-delay: 1.5s; font-size: 20px; }
+.hearts span:nth-child(3) { left: 25%; animation-delay: 3s; }
+.hearts span:nth-child(4) { left: 40%; animation-delay: 0.5s; font-size: 22px; }
+.hearts span:nth-child(5) { left: 55%; animation-delay: 4s; }
+.hearts span:nth-child(6) { left: 65%; animation-delay: 2s; font-size: 18px; }
+.hearts span:nth-child(7) { left: 78%; animation-delay: 5s; }
+.hearts span:nth-child(8) { left: 90%; animation-delay: 6s; font-size: 20px; }
+@keyframes floatUp {
+    0% { bottom: -30px; opacity: 0; transform: translateX(0) rotate(0deg); }
+    20% { opacity: 0.35; } 80% { opacity: 0.25; }
+    100% { bottom: 105%; opacity: 0; transform: translateX(20px) rotate(20deg); }
+}
+
+/* ── 头部 ── */
+.header { text-align: center; padding: 18px 0 8px; position: relative; }
+.header::before { content: "🎀"; position: absolute; top: 0; left: 50%; transform: translateX(-50%); font-size: 28px; animation: bounce 2s infinite; }
+@keyframes bounce { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -6px); } }
+.header .title { font-size: 20px; font-weight: 700; color: #d6336c; letter-spacing: 1px; margin-top: 6px; }
+.header .subtitle { font-size: 11px; color: #c47d95; margin-top: 2px; }
+
+/* ── 名言 ── */
+.quote-box {
+    position: relative; margin: 0 0 8px 0; padding: 8px 12px;
+    background: rgba(255,255,255,0.8); border: 1.5px solid #ffb6c7;
+    border-radius: 12px; font-size: 11px; color: #6b3a5b; line-height: 1.6; text-align: center;
+}
+.quote-box .q-text { font-weight: 700; color: #d6336c; }
+.quote-box .q-author { display: block; text-align: right; font-size: 10px; color: #c47d95; margin-top: 2px; }
+
+/* ── 计时卡片 ── */
+.love-card {
+    background: rgba(255,255,255,0.78); border: 2px solid #ffb6c7; border-radius: 20px;
+    padding: 16px; margin-bottom: 10px;
+    box-shadow: 0 3px 12px rgba(255,105,135,0.13), inset 0 0 0 3px rgba(255,255,255,0.4);
+    text-align: center;
+}
+.love-card .love-label {
+    font-size: 12px; color: #c47d95; font-weight: 700; letter-spacing: 2px; margin-bottom: 4px;
+}
+.love-card .love-label::before { content: "♡ "; color: #ff85a2; }
+.love-card .love-label::after { content: " ♡"; color: #ff85a2; }
+.love-card .love-days {
+    font-size: 56px; font-weight: 200; color: #ff6b8a; line-height: 1;
+    text-shadow: 2px 2px 0 #fff, 3px 3px 8px rgba(255,107,138,0.12);
+}
+.love-card .love-days .unit { font-size: 20px; font-weight: 400; color: #d6336c; margin-left: 2px; }
+.love-card .love-detail {
+    display: flex; justify-content: center; gap: 12px; margin-top: 8px;
+}
+.love-card .love-tb {
+    text-align: center; min-width: 44px;
+    background: linear-gradient(135deg, #fff5f7, #ffe4ec);
+    border-radius: 12px; padding: 6px 10px; border: 1px solid #ffd1dc;
+}
+.love-card .love-tb .num { font-size: 20px; font-weight: 700; color: #d6336c; line-height: 1; }
+.love-card .love-tb .label { font-size: 9px; color: #c47d95; margin-top: 1px; }
+.love-card .love-since { margin-top: 8px; font-size: 11px; color: #c47d95; font-weight: 600; }
+.love-card .love-since span { color: #d6336c; font-weight: 700; }
+
+/* ── 电影 ── */
+.movie-box {
+    margin-bottom: 10px; padding: 10px 12px;
+    background: rgba(255,255,255,0.8); border: 1.5px solid #ffb6c7;
+    border-radius: 14px; font-size: 11px; line-height: 1.5;
+}
+.movie-box .movie-title { font-size: 13px; font-weight: 700; color: #d6336c; text-align: center; margin-bottom: 6px; }
+.movie-box .movie-section { font-size: 10px; font-weight: 700; color: #ff6b8a; margin: 6px 0 3px 0; padding-top: 4px; border-top: 1px dashed #ffd1dc; }
+.movie-box .movie-item { display: flex; align-items: center; gap: 4px; padding: 2px 0; }
+.movie-box .movie-rank { width: 16px; text-align: center; font-weight: 700; font-size: 11px; color: #d6336c; flex-shrink: 0; }
+.movie-box .movie-name { flex: 1; font-weight: 600; color: #6b3a5b; }
+.movie-box .movie-badge { display: inline-block; background: #ffe4ec; color: #d6336c; font-size: 9px; padding: 1px 5px; border-radius: 6px; font-weight: 700; }
+
+/* ── 主卡片 ── */
+.card {
+    background: rgba(255,255,255,0.78); border: 2px solid #ffb6c7; border-radius: 18px;
+    padding: 16px; margin-bottom: 10px;
+    box-shadow: 0 2px 10px rgba(255,105,135,0.12);
+}
+.card-title { font-size: 13px; color: #d6336c; font-weight: 700; letter-spacing: 1px; margin-bottom: 12px; text-align: center; }
+.card-title::before { content: "♡ "; color: #ff85a2; }
+.card-title::after { content: " ♡"; color: #ff85a2; }
+.card-date { text-align: center; font-size: 14px; font-weight: 700; color: #d6336c; padding: 4px 0 0 0; }
+
+/* ── 天气主显 ── */
+.weather-main { display: flex; align-items: center; justify-content: space-around; }
+.weather-left { text-align: center; }
+.weather-left .big-emoji { font-size: 60px; line-height: 1; }
+.weather-left .desc-cn { font-size: 15px; font-weight: 700; color: #d6336c; margin-top: 2px; }
+.weather-right { text-align: center; }
+.weather-right .big-temp { font-size: 56px; font-weight: 700; color: #ff6b8a; line-height: 1; }
+.weather-right .big-temp span { font-size: 22px; }
+.weather-right .feels { font-size: 12px; color: #c47d95; margin-top: 2px; }
+
+/* ── 详情网格 ── */
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 12px; }
+.detail-item {
+    background: linear-gradient(135deg, #fff5f7, #ffe4ec); border: 1px solid #ffd1dc;
+    border-radius: 12px; padding: 8px 6px; text-align: center;
+}
+.detail-item .icon { font-size: 18px; margin-bottom: 2px; }
+.detail-item .value { font-size: 13px; font-weight: 700; color: #d6336c; }
+.detail-item .label { font-size: 10px; color: #c47d95; }
+
+/* ── 日出日落 ── */
+.sun-row { display: flex; justify-content: center; gap: 20px; margin-top: 12px; padding-top: 10px; border-top: 1.5px dotted #ffd1dc; }
+.sun-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #c47d95; font-weight: 700; background: #fff5f7; padding: 5px 10px; border-radius: 14px; }
+.sun-item .sun-icon { font-size: 16px; }
+
+/* ── 穿衣建议 ── */
+.advice-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.advice-item { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: 12px; background: #fff5f7; border: 1px solid #ffd1dc; }
+.advice-item .a-emoji { font-size: 20px; flex-shrink: 0; }
+.advice-item .a-text { font-size: 13px; line-height: 1.5; color: #6b3a5b; font-weight: 700; }
+.advice-item.cold { border-left: 3px solid #87ceeb; background: #f0f8ff; }
+.advice-item.cool { border-left: 3px solid #a8e6cf; background: #f0fff4; }
+.advice-item.warm { border-left: 3px solid #ffd1a9; background: #fffaf0; }
+.advice-item.hot { border-left: 3px solid #ff8a80; background: #fff0f0; }
+.advice-item.warn { border-left: 3px solid #ffe082; background: #fffde7; }
+.advice-item.rain { border-left: 3px solid #90caf9; background: #f3faff; }
+.advice-item.fun { border-left: 3px solid #f48fb1; background: #fff0f5; }
+
+/* ── 时段概览 ── */
+.hourly-list { display: flex; flex-direction: column; gap: 4px; }
+.hourly-item { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 10px; background: #fff5f7; border: 1px solid #ffe4ec; }
+.hourly-item.now { background: #ffe4ec; border: 2px solid #ffb6c7; }
+.hourly-item .h-time { width: 36px; font-size: 11px; font-weight: 700; color: #d6336c; }
+.hourly-item .h-emoji { font-size: 16px; width: 24px; text-align: center; }
+.hourly-item .h-temp { width: 28px; font-size: 12px; font-weight: 700; text-align: right; }
+.hourly-item .h-bar-wrap { flex: 1; height: 5px; background: #ffe4ec; border-radius: 3px; overflow: hidden; }
+.hourly-item .h-bar { height: 100%; border-radius: 3px; transition: width 0.5s; }
+.hourly-item .h-rain { width: 40px; font-size: 10px; color: #e0407a; text-align: right; font-weight: 700; }
+.hourly-item .h-wind { width: 44px; font-size: 10px; color: #c47d95; text-align: right; font-weight: 700; }
+
+/* ── 未来几天 ── */
+.forecast-list { display: flex; gap: 6px; }
+.forecast-item {
+    flex: 1; background: linear-gradient(180deg, #fff5f7, #ffe4ec);
+    border: 1px solid #ffd1dc; border-radius: 14px; padding: 12px 6px; text-align: center;
+}
+.forecast-item .f-date { font-size: 10px; color: #c47d95; margin-bottom: 4px; font-weight: 700; }
+.forecast-item .f-emoji { font-size: 24px; margin-bottom: 4px; }
+.forecast-item .f-cn { font-size: 11px; color: #d6336c; margin-bottom: 4px; font-weight: 700; }
+.forecast-item .f-temps { font-size: 11px; font-weight: 700; }
+.forecast-item .f-lo { color: #87ceeb; }
+.forecast-item .f-hi { color: #ff6b8a; }
+
+/* ── 福州梗 ── */
+.fuzhou-joke {
+    text-align: center; padding: 12px; font-size: 12px; color: #c47d95; font-weight: 700;
+    font-style: italic; line-height: 1.8; background: rgba(255,255,255,0.5);
+    border-radius: 14px; border: 1.5px dashed #ffd1dc; margin-bottom: 10px;
+}
+
+/* ── Footer ── */
+.footer { text-align: center; font-size: 10px; color: #d5a0b5; padding: 4px 0 16px; }
+.footer::after { content: " ♥"; color: #ff6b8a; }
+
+/* ── 刷新按钮 ── */
+.refresh-btn {
+    display: block; margin: 0 auto 20px; padding: 8px 24px;
+    background: linear-gradient(135deg, #ff85a2, #ff6b8a); color: #fff;
+    border: none; border-radius: 20px; font-size: 13px; font-weight: 700;
+    cursor: pointer; letter-spacing: 1px;
+    box-shadow: 0 2px 8px rgba(255,105,135,0.25);
+}
+.refresh-btn:active { transform: scale(0.95); }
+
+.hidden { display: none; }
+.error-msg { text-align: center; padding: 40px 20px; color: #d6336c; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<!-- 飘浮爱心 -->
+<div class="hearts">
+    <span>💕</span><span>♥</span><span>💗</span><span>💖</span>
+    <span>🎀</span><span>💝</span><span>💕</span><span>🌸</span>
+</div>
+
+<div class="container" id="app">
+
+    <!-- 加载中 -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div>丹丹宝宝正在加载...</div>
+    </div>
+
+    <!-- 错误提示 -->
+    <div class="error-msg hidden" id="error">
+        😿 网络不给力呀<br>请检查网络后刷新重试
+        <br><br><button class="refresh-btn" onclick="location.reload()">🔄 刷新</button>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="hidden" id="content">
+
+        <!-- 头部 -->
+        <div class="header">
+            <div class="title">丹丹宝宝专属推送</div>
+            <div class="subtitle" id="updateTime"></div>
+        </div>
+
+        <!-- 名言 -->
+        <div class="quote-box">
+            <span class="q-text" id="quoteText"></span>
+            <span class="q-author" id="quoteAuthor"></span>
+        </div>
+
+        <!-- ====== 在一起计时卡片 ====== -->
+        <div class="love-card">
+            <div class="love-label">💕 丹丹 & 张张 在一起</div>
+            <div class="love-days">
+                <span id="loveDays">--</span><span class="unit">天</span>
+            </div>
+            <div class="love-detail">
+                <div class="love-tb">
+                    <div class="num" id="loveHours">--</div>
+                    <div class="label">小时</div>
+                </div>
+                <div class="love-tb">
+                    <div class="num" id="loveMinutes">--</div>
+                    <div class="label">分钟</div>
+                </div>
+                <div class="love-tb">
+                    <div class="num" id="loveSeconds">--</div>
+                    <div class="label">秒</div>
+                </div>
+            </div>
+            <div class="love-since">📅 从 <span>2026年4月2日</span> 开始计时</div>
+        </div>
+
+        <!-- 电影 -->
+        <div class="movie-box">
+            <div class="movie-title">🎬 热映电影</div>
+            <div class="movie-section">🔥 正在热映</div>
+            <div class="movie-item"><span class="movie-rank">🥇</span><span class="movie-name">给阿嬷的情书</span><span class="movie-badge">17.7亿</span></div>
+            <div class="movie-item"><span class="movie-rank">🥈</span><span class="movie-name">消失的人</span><span class="movie-badge">热映</span></div>
+            <div class="movie-item"><span class="movie-rank">🥉</span><span class="movie-name">火遮眼</span><span class="movie-badge">热映</span></div>
+            <div class="movie-item"><span class="movie-rank">4</span><span class="movie-name">星战:曼达洛人</span></div>
+            <div class="movie-item"><span class="movie-rank">5</span><span class="movie-name">诺曼底72小时</span></div>
+            <div class="movie-section">🎯 暑期档</div>
+            <div class="movie-item"><span class="movie-rank">🥇</span><span class="movie-name">我看见两朵一样的云</span></div>
+            <div class="movie-item"><span class="movie-rank">🥈</span><span class="movie-name">玩具总动员5</span></div>
+            <div class="movie-item"><span class="movie-rank">🥉</span><span class="movie-name">抓特务</span></div>
+        </div>
+
+        <!-- 天气卡片 -->
+        <div class="card">
+            <div class="card-title">🌸 福州今日天气</div>
+            <div class="weather-main">
+                <div class="weather-left">
+                    <div class="big-emoji" id="wEmoji">🌈</div>
+                    <div class="desc-cn" id="wDesc">--</div>
+                </div>
+                <div class="weather-right">
+                    <div class="big-temp"><span id="wTemp">--</span><span>°C</span></div>
+                    <div class="feels">体感 <span id="wFeels">--</span>°C</div>
+                </div>
+            </div>
+            <div class="card-date">📅 <span id="wDate">--</span></div>
+            <div class="detail-grid">
+                <div class="detail-item"><div class="icon">💧</div><div class="value" id="dHum">--</div><div class="label">湿度</div></div>
+                <div class="detail-item"><div class="icon">💨</div><div class="value" id="dWind">--</div><div class="label">风力</div></div>
+                <div class="detail-item"><div class="icon">☀️</div><div class="value" id="dUV">--</div><div class="label">紫外线</div></div>
+                <div class="detail-item"><div class="icon">🔭</div><div class="value" id="dVis">--</div><div class="label">能见度</div></div>
+                <div class="detail-item"><div class="icon">📊</div><div class="value" id="dPres">--</div><div class="label">气压</div></div>
+                <div class="detail-item"><div class="icon">📈</div><div class="value" id="dAvg">--</div><div class="label">今日均温</div></div>
+            </div>
+            <div class="sun-row">
+                <div class="sun-item"><span class="sun-icon">🌅</span><span>日出 <span id="sunrise">--</span></span></div>
+                <div class="sun-item"><span class="sun-icon">🌇</span><span>日落 <span id="sunset">--</span></span></div>
+            </div>
+        </div>
+
+        <!-- 穿衣建议 -->
+        <div class="card">
+            <div class="card-title">👗 今日穿衣推荐</div>
+            <ul class="advice-list" id="adviceList"></ul>
+        </div>
+
+        <!-- 时段概览 -->
+        <div class="card">
+            <div class="card-title">🕐 今日时段概览</div>
+            <div class="hourly-list" id="hourlyList"></div>
+        </div>
+
+        <!-- 未来几天 -->
+        <div class="card">
+            <div class="card-title">📅 未来几天</div>
+            <div class="forecast-list" id="forecastList"></div>
+        </div>
+
+        <!-- 福州梗 -->
+        <div class="fuzhou-joke">
+            🐱 Kitty 说福州天气：<br>
+            "福州只有夏天和冬天，春秋在传说里。"<br>
+            "湿度没下过 70%，衣服晾不干是常态。"
+        </div>
+
+        <div class="footer">♥ 丹丹宝宝专属推送 · 数据来源 wttr.in ♥</div>
+
+        <button class="refresh-btn" onclick="location.reload()">🔄 刷新天气</button>
+
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// 🔢 在一起计时器（每秒更新）
+// ═══════════════════════════════════════════
+const START_DATE = new Date("2026-04-02T00:00:00+08:00");
+
+function updateTimer() {
+    const now = new Date();
+    const diff = now - START_DATE;
+    const ts = Math.floor(diff / 1000);
+    const tm = Math.floor(ts / 60);
+    const th = Math.floor(tm / 60);
+    const td = Math.floor(th / 24);
+
+    document.getElementById("loveDays").textContent = td;
+    document.getElementById("loveHours").textContent = String(th % 24).padStart(2, "0");
+    document.getElementById("loveMinutes").textContent = String(tm % 60).padStart(2, "0");
+    document.getElementById("loveSeconds").textContent = String(ts % 60).padStart(2, "0");
+}
+
+// ═══════════════════════════════════════════
+// ☁️ 天气逻辑
+// ═══════════════════════════════════════════
+const QUOTES = [
+    ["遇到你之前，我没有想过结婚；遇到你之后，我没有想过别人。", "钱钟书"],
+    ["你微微地笑着，不同我说什么话。而我觉得，为了这个，我已等待很久了。", "泰戈尔"],
+    ["世界以痛吻我，要我报之以歌。", "泰戈尔"],
+    ["愿得一人心，白首不相离。", "卓文君"],
+    ["两情若是久长时，又岂在朝朝暮暮。", "秦观"],
+    ["山有木兮木有枝，心悦君兮君不知。", "越人歌"],
+    ["在天愿作比翼鸟，在地愿为连理枝。", "白居易"],
+    ["执子之手，与子偕老。", "诗经"],
+    ["你问我爱你值不值得，其实你应该知道，爱就是不问值不值得。", "张爱玲"],
+    ["一见钟情，再而衷情，三而深情。", "佚名"],
+    ["海底月是天上月，眼前人是心上人。", "张爱玲"],
+    ["春风十里不如你。", "冯唐"],
+    ["生活不止眼前的苟且，还有诗和远方。", "高晓松"],
+    ["既然选择了远方，便只顾风雨兼程。", "汪国真"],
+    ["世界上只有一种真正的英雄主义，那就是认清生活真相后依然热爱生活。", "罗曼·罗兰"],
+    ["你若爱，生活哪里都可爱。", "丰子恺"],
+    ["不乱于心，不困于情，不畏将来，不念过往。", "丰子恺"],
+    ["心有猛虎，细嗅蔷薇。", "萨松"],
+    ["天空没有翅膀的痕迹，但鸟儿已经飞过。", "泰戈尔"],
+    ["每一个不曾起舞的日子，都是对生命的辜负。", "尼采"],
+    ["竹杖芒鞋轻胜马，谁怕？一蓑烟雨任平生。", "苏轼"],
+    ["长风破浪会有时，直挂云帆济沧海。", "李白"],
+    ["采菊东篱下，悠然见南山。", "陶渊明"],
+    ["但愿人长久，千里共婵娟。", "苏轼"],
+];
+
+const WE = { sunny:"☀️", clear:"🌙", partly:"⛅", cloudy:"☁️", overcast:"☁️", mist:"🌫️", fog:"🌫️", rain:"🌧️", drizzle:"🌦️", shower:"🌧️", thunder:"⛈️", storm:"⛈️", snow:"❄️", sleet:"🌨️", hail:"🧊" };
+const WC = { sunny:"晴", clear:"晴", partly:"多云", cloudy:"阴", overcast:"阴", mist:"雾", fog:"雾", rain:"雨", drizzle:"毛毛雨", shower:"阵雨", thunder:"雷阵雨", storm:"暴风雨", snow:"雪", sleet:"雨夹雪", hail:"冰雹" };
+
+function wE(d) { for (let [k,v] of Object.entries(WE)) if (d.toLowerCase().includes(k)) return v; return "🌈"; }
+function wC(d) { for (let [k,v] of Object.entries(WC)) if (d.toLowerCase().includes(k)) return v; return d; }
+
+function tColor(t) { if (t<=10) return "#4fc3f7"; if (t<=20) return "#81c784"; if (t<=28) return "#ffb74d"; if (t<=33) return "#ff8a65"; return "#e57373"; }
+
+function clothing(temp, hum, wind, desc, feels) {
+    const t = [];
+    if (temp<=5) t.push(["🧥","羽绒服 + 毛衣 + 围巾手套","cold"]);
+    else if (temp<=10) t.push(["🧥","厚外套 + 毛衣","cold"]);
+    else if (temp<=15) t.push(["🧥","薄外套/夹克 + 长袖","cool"]);
+    else if (temp<=20) t.push(["👔","薄外套/卫衣，早晚微凉","cool"]);
+    else if (temp<=25) t.push(["👕","长袖/薄长裤，舒适刚好","warm"]);
+    else if (temp<=28) t.push(["👕","短袖 + 薄长裤","warm"]);
+    else if (temp<=33) t.push(["🩳","短袖短裤，注意防晒","hot"]);
+    else t.push(["🔥","福州烧烤模式！短袖短裤 + 防晒霜","hot"]);
+    if (feels && Math.abs(feels-temp)>=4) t.push(["⚠️",`体感 ${feels}°C（比实际${feels>temp?'热':'冷'}）`,"warn"]);
+    if (hum>=85) t.push(["💧","湿度爆表！穿速干材质，备件换的衣服","warn"]);
+    else if (hum>=70) t.push(["💧","湿度偏高，注意防潮","warn"]);
+    if (wind>=30) t.push(["💨","风大！穿防风外套","warn"]);
+    else if (wind>=15) t.push(["🍃","有点风，薄外套挡挡","warn"]);
+    const d=desc.toLowerCase();
+    if (["rain","drizzle","shower","thunder"].some(w=>d.includes(w))) t.push(["☔","下雨记得带伞！福州下雨跟倒水一样","rain"]);
+    if (d.includes("thunder")) t.push(["⚡","打雷了！别在外面晃悠","rain"]);
+    t.push(["🍜","福州专属：热了来碗冰花生汤，冷了来碗锅边糊","fun"]);
+    return t;
+}
+
+function windLvl(kmh) { if(kmh<1)return"0级"; if(kmh<=5)return"1级"; if(kmh<=11)return"2级"; if(kmh<=19)return"3级"; if(kmh<=28)return"4级"; if(kmh<=38)return"5级"; return"6级+"; }
+
+async function fetchW() {
+    try { const r=await fetch("https://wttr.in/Fuzhou?format=j1"); if(!r.ok)throw 0; return await r.json(); }
+    catch(e) { return null; }
+}
+
+function render(data) {
+    if (!data) { document.getElementById("loading").classList.add("hidden"); document.getElementById("error").classList.remove("hidden"); return; }
+    const c=data.current_condition[0];
+    const tmp=parseInt(c.temp_C), fl=parseInt(c.FeelsLikeC), hum=parseInt(c.humidity), wkmh=parseInt(c.windspeedKmph);
+    const desc=c.weatherDesc[0].value, today=data.weather[0];
+
+    // 名言
+    const q=QUOTES[new Date().getHours()%QUOTES.length];
+    document.getElementById("quoteText").textContent=`"${q[0]}"`;
+    document.getElementById("quoteAuthor").textContent=`—— ${q[1]}`;
+
+    document.getElementById("updateTime").textContent=`更新于 ${c.observation_time}`;
+    document.getElementById("wEmoji").textContent=wE(desc);
+    document.getElementById("wDesc").textContent=wC(desc);
+    document.getElementById("wTemp").textContent=tmp;
+    document.getElementById("wFeels").textContent=fl;
+    document.getElementById("wDate").textContent=new Date().toISOString().split("T")[0];
+    document.getElementById("dHum").textContent=hum+"%";
+    document.getElementById("dWind").textContent=c.winddir16Point+" "+windLvl(wkmh);
+    document.getElementById("dUV").textContent=c.uvIndex+" 级";
+    document.getElementById("dVis").textContent=c.visibility+" km";
+    document.getElementById("dPres").textContent=c.pressure;
+    document.getElementById("dAvg").textContent=today.avgtempC+"°C";
+    document.getElementById("sunrise").textContent=today.astronomy[0].sunrise;
+    document.getElementById("sunset").textContent=today.astronomy[0].sunset;
+
+    // 穿衣
+    document.getElementById("adviceList").innerHTML=clothing(tmp,hum,wkmh,desc,fl).map(([e,t,c])=>`<li class="advice-item ${c}"><span class="a-emoji">${e}</span><span class="a-text">${t}</span></li>`).join("");
+
+    // 时段
+    const nh=new Date().getHours();
+    document.getElementById("hourlyList").innerHTML=today.hourly.map(h=>{
+        const hr=parseInt(h.time)/100, t=h.tempC, r=h.chanceofrain, ws=h.windspeedKmph;
+        const we=wE(h.weatherDesc[0].value), tc=tColor(parseInt(t)), bw=Math.max(5,Math.min(100,parseInt(t)*3));
+        const rh=parseInt(r)>30?`${we} ${r}%`:"—", nc=hr===nh?" now":"";
+        return `<div class="hourly-item${nc}"><span class="h-time">${String(hr).padStart(2,"0")}:00</span><span class="h-emoji">${we}</span><span class="h-temp" style="color:${tc}">${t}°</span><span class="h-bar-wrap"><span class="h-bar" style="width:${bw}%;background:${tc}"></span></span><span class="h-rain">${rh}</span><span class="h-wind">💨${ws}</span></div>`;
+    }).join("");
+
+    // 未来
+    document.getElementById("forecastList").innerHTML=data.weather.slice(1,4).map(d=>{
+        const wd=d.hourly[4].weatherDesc[0].value;
+        return `<div class="forecast-item"><div class="f-date">${d.date}</div><div class="f-emoji">${wE(wd)}</div><div class="f-cn">${wC(wd)}</div><div class="f-temps"><span class="f-lo">${d.mintempC}°</span> ~ <span class="f-hi">${d.maxtempC}°</span></div></div>`;
+    }).join("");
+
+    document.getElementById("loading").classList.add("hidden");
+    document.getElementById("content").classList.remove("hidden");
+}
+
+// ═══════════════════════════════════════════
+// 🚀 启动
+// ═══════════════════════════════════════════
+updateTimer();
+setInterval(updateTimer, 1000);
+fetchW().then(render);
+</script>
+</body>
+</html>
